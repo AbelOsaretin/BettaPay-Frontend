@@ -1,10 +1,13 @@
 import { z } from 'zod';
 
+const amountSchema = z.string()
+  .regex(/^\d+(\.\d{1,7})?$/, 'Amount must be a valid number with up to 7 decimal places')
+  .refine(val => parseFloat(val) > 0, 'Amount must be strictly positive');
 
 export const paymentLinkSchema = z.object({
   label: z.string().min(2, 'Label must be at least 2 characters'),
   type: z.enum(['fixed', 'open']),
-  amount: z.string().optional(),
+  amount: amountSchema.optional(),
   currency: z.string().optional(),
   description: z.string().optional(),
 }).refine(data => {
@@ -36,7 +39,7 @@ export type MerchantProfileFormValues = z.infer<typeof merchantProfileSchema>;
 
 export const editPaymentLinkSchema = z.object({
   label: z.string().min(1, 'Label is required'),
-  amount: z.string().optional(),
+  amount: amountSchema.optional(),
   currency: z.enum(['USDC', 'XLM', 'USDT']).default('USDC'),
   expiry: z.string().optional(),
   redirectUrl: z.string().url('Invalid URL').or(z.literal('')).optional(),
