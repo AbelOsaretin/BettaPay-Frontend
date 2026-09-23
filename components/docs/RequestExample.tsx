@@ -4,6 +4,7 @@ import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
 import type { HighlightedSample } from '@/lib/docs/types';
 import { CopyButton } from './CopyButton';
+import { SafeHtmlRenderer } from '@/components/shared/SafeHtmlRenderer';
 
 interface RequestExampleProps {
   /** Pre-highlighted samples (cURL, Node, Python, React, …), in tab order. */
@@ -96,7 +97,7 @@ export function RequestExample({ samples }: RequestExampleProps) {
           aria-labelledby={`${baseId}-tab-${index}`}
           hidden={index !== active}
         >
-          <div className="docs-code" dangerouslySetInnerHTML={{ __html: sample.html }} />
+          <SafeHtmlRenderer className="docs-code" html={sample.html} />
         </div>
       ))}
     </div>
