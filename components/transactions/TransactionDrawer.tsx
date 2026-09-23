@@ -176,7 +176,7 @@ export const TransactionDrawer = ({ transaction, isOpen, onClose }: TransactionD
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, transaction?.id]);
 
   const handleClose = useCallback(() => {
     if (hasPushedRef.current && typeof window !== 'undefined') {

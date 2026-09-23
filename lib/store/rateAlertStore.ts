@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { csrfHeader } from '@/lib/utils/csrf';
 
+const MAX_ALERTS = 100;
+
 export type RateAlertRecurrence = 'once' | 'recurring';
 export type RateAlertChannel = 'in_app' | 'email' | 'webhook';
 
@@ -93,7 +95,10 @@ export const useRateAlertStore = create<RateAlertState>()(
           triggered: false,
           synced: false,
         };
-        set((state) => ({ alerts: [...state.alerts, optimistic] }));
+        set((state) => {
+          const nextAlerts = [...state.alerts, optimistic];
+          return { alerts: nextAlerts.slice(-MAX_ALERTS) };
+        });
 
         void api('/api/rate-alerts', {
           method: 'POST',

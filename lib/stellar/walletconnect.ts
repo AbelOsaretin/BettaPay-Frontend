@@ -438,6 +438,13 @@ export class WalletConnectClient {
     this.emit('disconnected');
   }
 
+  /** Abort a pending connection if the user closes the modal early. */
+  abortInitialization() {
+    if (this.currentStatus === 'connecting' || this.currentStatus === 'reconnecting') {
+      this.disconnect();
+    }
+  }
+
   // ── WebSocket lifecycle ─────────────────────────────────────────────────────
 
   /** (Re)open the relay socket against the last known URL and wire handlers. */
