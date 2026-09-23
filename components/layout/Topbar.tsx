@@ -18,7 +18,16 @@ import { useAuthStore } from "@/lib/store/authStore";
 import { useWalletStore } from "@/lib/store/walletStore";
 import { useRouter } from "next/navigation";
 import { useNotify } from "@/lib/hooks/useNotify";
-import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui";
+
+const NotificationCenter = dynamic(
+  () => import("@/components/notifications/NotificationCenter").then((mod) => mod.NotificationCenter),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-8 w-8 rounded-full" />
+  }
+);
 
 interface TopbarProps {
   onMenuClick?: () => void;

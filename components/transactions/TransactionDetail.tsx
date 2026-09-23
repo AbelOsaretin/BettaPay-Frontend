@@ -26,6 +26,7 @@ import { StatusBadge } from '@/components/shared';
 import { getStellarExplorerTxUrl } from '@/lib/utils/explorer';
 import { useWalletStore } from '@/lib/store/walletStore';
 import { useNotify } from '@/lib/hooks/useNotify';
+import { usePayment } from '@/lib/api/hooks';
 
 interface TransactionDetailProps {
   transaction: Transaction | null;
@@ -140,7 +141,10 @@ export const TransactionDetail: React.FC<TransactionDetailProps> = ({
     }
   }, [isOpen]);
 
-  if (!transaction) return null;
+  const { data: fetchedTransaction } = usePayment(transaction?.id ?? null);
+  const displayTransaction = fetchedTransaction ?? transaction;
+
+  if (!displayTransaction) return null;
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -148,17 +152,19 @@ export const TransactionDetail: React.FC<TransactionDetailProps> = ({
   };
 
   const openExplorer = () => {
-    window.open(getStellarExplorerTxUrl(transaction.txHash, network), '_blank');
+    if (displayTransaction.txHash) {
+      window.open(getStellarExplorerTxUrl(displayTransaction.txHash, network), '_blank');
+    }
   };
 
   const detailRows = [
-    { label: 'Status', value: <StatusBadge status={transaction.status} />, icon: Clock },
+    { label: 'Status', value: <StatusBadge status={displayTransaction.status} />, icon: Clock },
     {
       label: 'Transaction Hash',
       value: (
         <div className="flex items-center gap-2">
-          <span className="font-mono text-xs truncate max-w-[200px]">{transaction.txHash}</span>
-          <Button variant="ghost" size="icon-xs" onClick={() => handleCopy(transaction.txHash, 'Transaction hash')}>
+          <span className="font-mono text-xs truncate max-w-[200px]">{displayTransaction.txHash}</span>
+          <Button variant="ghost" size="icon-xs" onClick={() => handleCopy(displayTransaction.txHash ?? '', 'Transaction hash')}>
             <Copy className="size-3" />
           </Button>
         </div>
@@ -167,15 +173,15 @@ export const TransactionDetail: React.FC<TransactionDetailProps> = ({
     },
     {
       label: 'Stellar Operation ID',
-      value: transaction.stellarOpId || '1928374655', // fallback for mock
+      value: (displayTransaction as any).stellarOpId || '1928374655', // fallback for mock
       icon: Hexagon
     },
     {
       label: 'Payer Address',
       value: (
         <div className="flex items-center gap-2">
-          <span className="font-mono text-xs">{transaction.payerAddress}</span>
-          <Button variant="ghost" size="icon-xs" onClick={() => handleCopy(transaction.payerAddress, 'Payer address')}>
+          <span className="font-mono text-xs">{displayTransaction.payerAddress}</span>
+          <Button variant="ghost" size="icon-xs" onClick={() => handleCopy(displayTransaction.payerAddress ?? '', 'Payer address')}>
             <Copy className="size-3" />
           </Button>
         </div>
@@ -184,12 +190,12 @@ export const TransactionDetail: React.FC<TransactionDetailProps> = ({
     },
     {
       label: 'Source',
-      value: transaction.source,
+      value: displayTransaction.source,
       icon: LinkIcon
     },
     {
       label: 'Timestamp',
-      value: formatDate(transaction.timestamp),
+      value: formatDate((displayTransaction as any).timestamp ?? displayTransaction.createdAt),
       icon: Clock
     },
   ];
@@ -218,10 +224,10 @@ export const TransactionDetail: React.FC<TransactionDetailProps> = ({
           <div className="bg-muted p-6 rounded-2xl border border-border flex flex-col items-center justify-center text-center">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Total Amount</p>
             <div className="text-3xl font-bold text-foreground">
-              <CurrencyDisplay amount={transaction.amountUsdc} currency="USDC" />
+              <CurrencyDisplay amount={displayTransaction.amountUsdc} currency="USDC" />
             </div>
             <p className="text-sm font-medium text-muted-foreground mt-1">
-              ≈ ₦{transaction.amountNgn.toLocaleString()} NGN
+              ≈ ₦{(displayTransaction.amountNgn ?? 0).toLocaleString()} NGN
             </p>
           </div>
 

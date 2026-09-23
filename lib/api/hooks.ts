@@ -279,6 +279,31 @@ export function usePayments(): HookShape<ApiPayment[]> {
   return mapQuery(query, []);
 }
 
+// ─── usePayment ──────────────────────────────────────────────────────────────
+
+export function usePayment(id: string | null): HookShape<ApiPayment | null> {
+  const queryClient = useQueryClient();
+  const query = useQuery<ApiPayment | null, Error>({
+    queryKey: ['payment', id],
+    queryFn: async () => {
+      if (!id) return null;
+      const res = await apiClient.get<ItemEnvelope<ApiPayment> | ApiPayment>(
+        `/api/payments/${id}`,
+      );
+      const payload = res.data;
+      const raw = (payload as ItemEnvelope<ApiPayment>).data ?? payload;
+      return { ...raw, status: normalizePaymentStatus(raw.status) };
+    },
+    enabled: !!id,
+    initialData: () => {
+      if (!id) return undefined;
+      const payments = queryClient.getQueryData<ApiPayment[]>(queryKeys.payments);
+      return payments?.find((p) => p.id === id);
+    },
+  });
+  return mapQuery(query, null);
+}
+
 // ─── useSettlements ───────────────────────────────────────────────────────────
 
 export function useSettlements(): HookShape<ApiSettlement[]> {

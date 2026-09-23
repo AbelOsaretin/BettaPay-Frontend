@@ -84,6 +84,13 @@ export const useAuthStore = create<AuthState>()(
           isLoggedIn: true,
         }),
       logout: async () => {
+        if (typeof window !== "undefined") {
+          try {
+            const channel = new BroadcastChannel("bettapay_auth_sync");
+            channel.postMessage("logout");
+            channel.close();
+          } catch {}
+        }
         set({
           user: null,
           token: null,
@@ -162,4 +169,26 @@ export const useAuthStore = create<AuthState>()(
 /** Selector hook for gating protected UI on rehydration (issue #485). */
 export function useAuthHydrated(): boolean {
   return useAuthStore((s) => s._hasHydrated);
+}
+
+if (typeof window !== "undefined") {
+  try {
+    const channel = new BroadcastChannel("bettapay_auth_sync");
+    channel.onmessage = (event) => {
+      if (event.data === "logout") {
+        useAuthStore.setState({
+          user: null,
+          token: null,
+          role: null,
+          isAuthenticated: false,
+          isLoggedIn: false,
+        });
+        try {
+          useAuthStore.persist.clearStorage();
+        } catch {}
+        resetAllUserState();
+        window.location.href = "/auth/login";
+      }
+    };
+  } catch {}
 }
