@@ -265,7 +265,7 @@ export function ProfileEditor({
               </Label>
               <Input
                 {...register('businessName')}
-                aria-invalid={errors.businessName ? 'true' : 'false'}
+                aria-invalid={!!errors.businessName}
                 placeholder="Enter business name"
                 className="h-10 border-border rounded-xl bg-card text-sm"
                 disabled={isSubmitting}
@@ -312,7 +312,7 @@ export function ProfileEditor({
               </Label>
               <Input
                 {...register('country')}
-                aria-invalid={errors.country ? 'true' : 'false'}
+                aria-invalid={!!errors.country}
                 placeholder="e.g. Nigeria"
                 className="h-10 border-border rounded-xl bg-card text-sm"
                 disabled={isSubmitting}
@@ -331,7 +331,7 @@ export function ProfileEditor({
               </Label>
               <Input
                 {...register('industry')}
-                aria-invalid={errors.industry ? 'true' : 'false'}
+                aria-invalid={!!errors.industry}
                 placeholder="e.g. Fintech, E-commerce"
                 className="h-10 border-border rounded-xl bg-card text-sm"
                 disabled={isSubmitting}
@@ -351,7 +351,7 @@ export function ProfileEditor({
               <Input
                 {...register('websiteUrl')}
                 type="url"
-                aria-invalid={errors.websiteUrl ? 'true' : 'false'}
+                aria-invalid={!!errors.websiteUrl}
                 placeholder="https://example.com"
                 className="h-10 border-border rounded-xl bg-card text-sm"
                 disabled={isSubmitting}
@@ -371,7 +371,7 @@ export function ProfileEditor({
               <Input
                 {...register('contactEmail')}
                 type="email"
-                aria-invalid={errors.contactEmail ? 'true' : 'false'}
+                aria-invalid={!!errors.contactEmail}
                 placeholder="contact@example.com"
                 className="h-10 border-border rounded-xl bg-card text-sm"
                 disabled={isSubmitting}
@@ -391,7 +391,7 @@ export function ProfileEditor({
               <Input
                 {...register('phoneNumber')}
                 type="tel"
-                aria-invalid={errors.phoneNumber ? 'true' : 'false'}
+                aria-invalid={!!errors.phoneNumber}
                 placeholder="+234 800 000 0000"
                 className="h-10 border-border rounded-xl bg-card text-sm"
                 disabled={isSubmitting}

@@ -46,6 +46,7 @@ export function KybDocumentsPanel({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          <span className="sr-only">Document Status:</span>
           <span className="text-sm font-medium text-foreground">Verification status</span>
           {!isLoading && <KybStatusBadge status={kyb.kybStatus} />}
         </div>
@@ -62,6 +63,7 @@ export function KybDocumentsPanel({
       {kyb.kybStatus === 'rejected' && kyb.rejectionReason && (
         <Alert variant="destructive">
           <AlertTriangle aria-hidden="true" />
+          <span className="sr-only">Status: Rejected</span>
           <AlertTitle>Verification needs attention</AlertTitle>
           <AlertDescription>{kyb.rejectionReason}</AlertDescription>
         </Alert>
@@ -70,6 +72,7 @@ export function KybDocumentsPanel({
       {error && (
         <Alert variant="warning">
           <AlertTriangle aria-hidden="true" />
+          <span className="sr-only">Status: Error</span>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}

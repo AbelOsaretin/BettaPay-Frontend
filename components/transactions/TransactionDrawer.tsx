@@ -37,11 +37,14 @@ const CopyButton = ({ value, label }: { value: string; label: string }) => {
     }
   };
 
+  const { isSigning, walletConnectPending } = useWalletStore();
+
   return (
     <Button
       variant="ghost"
       size="icon-xs"
       onClick={handleCopy}
+      disabled={isSigning || walletConnectPending}
       aria-label={`Copy ${label.toLowerCase()}`}
       title={`Copy ${label.toLowerCase()}`}
       className="text-muted-foreground hover:text-foreground"
@@ -90,7 +93,11 @@ export const TransactionDrawer = ({ transaction, isOpen, onClose }: TransactionD
   // Retain the last transaction while the closing slide-out animation plays,
   // since the parent clears `transaction` at the same moment it closes.
   const [tx, setTx] = useState<ApiPayment | null>(transaction);
-  const network = useWalletStore((s) => s.network);
+  const { network, isSigning, walletConnectPending } = useWalletStore((s) => ({
+    network: s.network,
+    isSigning: s.isSigning,
+    walletConnectPending: s.walletConnectPending,
+  }));
 
   // History / focus management refs
   const popupRef = useRef<HTMLDivElement>(null);
@@ -287,6 +294,7 @@ export const TransactionDrawer = ({ transaction, isOpen, onClose }: TransactionD
                     variant="ghost"
                     size="icon-sm"
                     aria-label="Close transaction details"
+                    disabled={isSigning || walletConnectPending}
                   />
                 }
               >
@@ -358,7 +366,7 @@ export const TransactionDrawer = ({ transaction, isOpen, onClose }: TransactionD
                     rel="noopener noreferrer"
                     aria-label="View transaction on Stellar Explorer"
                   >
-                    <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-foreground">
+                    <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-foreground" disabled={isSigning || walletConnectPending}>
                       <ExternalLink className="size-3" />
                     </Button>
                   </a>
@@ -402,7 +410,7 @@ export const TransactionDrawer = ({ transaction, isOpen, onClose }: TransactionD
           <div className="border-t border-border/50 p-4">
             {explorerUrl ? (
               <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="block">
-                <Button className="w-full bg-foreground text-background hover:bg-foreground/90" size="sm">
+                <Button className="w-full bg-foreground text-background hover:bg-foreground/90" size="sm" disabled={isSigning || walletConnectPending}>
                   View full details on Explorer
                   <ExternalLink className="ml-2 size-3.5" />
                 </Button>
