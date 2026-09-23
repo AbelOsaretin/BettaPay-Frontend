@@ -119,6 +119,7 @@ export function WalletConnectModal({
     (v: boolean) => {
       if (!v) {
         closedRef.current = true;
+        getWalletConnectClient(network).abortInitialization();
         resetWalletConnectClient();
         setUri('');
         setStatus('idle');
@@ -129,7 +130,7 @@ export function WalletConnectModal({
       }
       onOpenChange(v);
     },
-    [onOpenChange],
+    [onOpenChange, network],
   );
 
   const showQr =
