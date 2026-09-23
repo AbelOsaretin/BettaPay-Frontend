@@ -64,6 +64,7 @@ export const MobileBottomNav = ({ onMoreClick }: MobileBottomNavProps) => {
             href={item.href}
             aria-current={isActive ? 'page' : undefined}
             aria-label={item.label}
+            aria-controls="main-content"
             className={cn(
               // transition-colors: only animate color/background, not layout properties.
               // motion-reduce:transition-none: fully suppress transition for users who
