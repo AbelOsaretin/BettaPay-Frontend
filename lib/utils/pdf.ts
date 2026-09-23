@@ -271,25 +271,25 @@ export async function generateSettlementInvoice(
   return doc;
 }
 
-/** Generate and download an invoice for one settlement. */
-export async function downloadSettlementInvoice(
+/** Generate a Blob for an invoice for one settlement. */
+export async function generateSettlementInvoiceBlob(
   settlement: ApiSettlement,
   merchant: InvoiceMerchant
-): Promise<void> {
+): Promise<{ blob: Blob; filename: string }> {
   const doc = await generateSettlementInvoice(settlement, merchant);
   const now = new Date();
   const date = now.toISOString().slice(0, 10);
   const time = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
   const raw = `${buildInvoiceNumber(settlement.id)}-${date}-${time}`;
-  doc.save(`${sanitizeFilename(raw)}.pdf`);
+  return { blob: doc.output('blob'), filename: `${sanitizeFilename(raw)}.pdf` };
 }
 
-/** Generate one combined PDF (one invoice per page) for multiple settlements. */
-export async function downloadSettlementInvoicesBatch(
+/** Generate one combined PDF Blob (one invoice per page) for multiple settlements. */
+export async function generateSettlementInvoicesBatchBlob(
   settlements: ApiSettlement[],
   merchant: InvoiceMerchant
-): Promise<void> {
-  if (settlements.length === 0) return;
+): Promise<{ blob: Blob; filename: string } | null> {
+  if (settlements.length === 0) return null;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const logo = await loadLogo();
   settlements.forEach((settlement, index) => {
@@ -308,5 +308,5 @@ export async function downloadSettlementInvoicesBatch(
   const now = new Date();
   const time = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
   const raw = `bettapay-invoices-${range}-${settlements.length}items-${time}`;
-  doc.save(`${sanitizeFilename(raw)}.pdf`);
+  return { blob: doc.output('blob'), filename: `${sanitizeFilename(raw)}.pdf` };
 }
