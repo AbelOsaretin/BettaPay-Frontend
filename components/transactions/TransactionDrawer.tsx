@@ -231,6 +231,30 @@ export const TransactionDrawer = ({ transaction, isOpen, onClose }: TransactionD
               e.stopPropagation();
               e.preventDefault();
               handleClose();
+            } else if (e.key === 'Tab') {
+              if (!popupRef.current) return;
+              const focusableElements = popupRef.current.querySelectorAll<HTMLElement>(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])'
+              );
+              const focusable = Array.from(focusableElements).filter(
+                (el) => !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true'
+              );
+              if (focusable.length === 0) return;
+              
+              const first = focusable[0];
+              const last = focusable[focusable.length - 1];
+
+              if (e.shiftKey) {
+                if (document.activeElement === first || document.activeElement === popupRef.current) {
+                  e.preventDefault();
+                  last.focus();
+                }
+              } else {
+                if (document.activeElement === last || document.activeElement === popupRef.current) {
+                  e.preventDefault();
+                  first.focus();
+                }
+              }
             }
           }}
           className={cn(
