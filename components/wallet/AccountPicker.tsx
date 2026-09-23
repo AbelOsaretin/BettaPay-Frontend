@@ -1,5 +1,7 @@
 "use client";
 
+import { memo, useCallback } from 'react';
+
 import { useWalletStore } from '@/lib/store/walletStore';
 import { Check, Wallet } from 'lucide-react';
 
@@ -7,6 +9,38 @@ interface AccountPickerProps {
   onAccountSelected?: (address: string) => void;
   className?: string;
 }
+
+interface AccountItemProps {
+  acc: string;
+  index: number;
+  isSelected: boolean;
+  onSelect: (acc: string) => void;
+}
+
+const AccountItem = memo(function AccountItem({ acc, index, isSelected, onSelect }: AccountItemProps) {
+  const shortAcc = `${acc.substring(0, 8)}...${acc.slice(-6)}`;
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(acc)}
+      className={`w-full flex items-center justify-between p-3 rounded-lg border text-left text-xs font-mono transition-colors ${
+        isSelected
+          ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-sm'
+          : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
+      }`}
+      aria-label={`Select account ${acc}`}
+      aria-pressed={isSelected}
+    >
+      <div className="flex items-center gap-2 overflow-hidden">
+        <span className="text-[10px] text-muted-foreground font-sans px-1.5 py-0.5 rounded bg-muted">
+          #{index + 1}
+        </span>
+        <span className="truncate">{shortAcc}</span>
+      </div>
+      {isSelected && <Check className="w-4 h-4 text-primary shrink-0 ml-2" />}
+    </button>
+  );
+});
 
 export function AccountPicker({ onAccountSelected, className = '' }: AccountPickerProps) {
   const address = useWalletStore((s) => s.address);
@@ -17,12 +51,12 @@ export function AccountPicker({ onAccountSelected, className = '' }: AccountPick
     return null;
   }
 
-  const handleSelect = (account: string) => {
+  const handleSelect = useCallback((account: string) => {
     selectAccount(account);
     if (onAccountSelected) {
       onAccountSelected(account);
     }
-  };
+  }, [selectAccount, onAccountSelected]);
 
   return (
     <div className={`p-4 bg-muted/40 border border-border rounded-xl space-y-3 ${className}`}>
@@ -41,33 +75,15 @@ export function AccountPicker({ onAccountSelected, className = '' }: AccountPick
       </p>
 
       <div className="space-y-2">
-        {stellarAccounts.map((acc, index) => {
-          const isSelected = acc === address;
-          const shortAcc = `${acc.substring(0, 8)}...${acc.slice(-6)}`;
-
-          return (
-            <button
-              key={acc}
-              type="button"
-              onClick={() => handleSelect(acc)}
-              className={`w-full flex items-center justify-between p-3 rounded-lg border text-left text-xs font-mono transition-colors ${
-                isSelected
-                  ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-sm'
-                  : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`}
-              aria-label={`Select account ${acc}`}
-              aria-pressed={isSelected}
-            >
-              <div className="flex items-center gap-2 overflow-hidden">
-                <span className="text-[10px] text-muted-foreground font-sans px-1.5 py-0.5 rounded bg-muted">
-                  #{index + 1}
-                </span>
-                <span className="truncate">{shortAcc}</span>
-              </div>
-              {isSelected && <Check className="w-4 h-4 text-primary shrink-0 ml-2" />}
-            </button>
-          );
-        })}
+        {stellarAccounts.map((acc, index) => (
+          <AccountItem
+            key={acc}
+            acc={acc}
+            index={index}
+            isSelected={acc === address}
+            onSelect={handleSelect}
+          />
+        ))}
       </div>
     </div>
   );
