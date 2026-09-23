@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui';
 import { Input } from '@/components/ui';
@@ -54,7 +54,7 @@ export function ProfileEditor({
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     reset,
     formState: { errors, isDirty },
   } = useForm<MerchantProfileFormValues>({
@@ -71,7 +71,7 @@ export function ProfileEditor({
     },
   });
 
-  const businessTypeValue = watch('businessType');
+
 
   useEffect(() => {
     if (initialData) {
@@ -126,16 +126,7 @@ export function ProfileEditor({
     }
   }, [setValue]);
 
-  const handleBusinessTypeChange = useCallback(
-    (value: MerchantProfileFormValues['businessType'] | null) => {
-      if (!value) return;
-      setValue('businessType', value, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-    },
-    [setValue]
-  );
+
 
   const onFormSubmit = useCallback(
     async (data: MerchantProfileFormValues) => {
@@ -282,22 +273,28 @@ export function ProfileEditor({
               <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Business Type <span className="text-destructive">*</span>
               </Label>
-              <Select
-                value={businessTypeValue}
-                onValueChange={handleBusinessTypeChange}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger className="w-full h-10 border-border rounded-xl bg-card text-sm">
-                  <SelectValue placeholder="Select business type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {BUSINESS_TYPE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                name="businessType"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isSubmitting}
+                  >
+                    <SelectTrigger className="w-full h-10 border-border rounded-xl bg-card text-sm">
+                      <SelectValue placeholder="Select business type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BUSINESS_TYPE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               {errors.businessType && (
                 <p className="text-xs text-destructive mt-1">
                   {errors.businessType.message}
