@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -14,7 +13,7 @@ jest.mock('@/lib/api/hooks', () => ({
 }));
 
 jest.mock('@/lib/store/offlineStore', () => ({
-  useOfflineStore: (selector: any) => selector({ isOnline: true }),
+  useOfflineStore: (selector: (state: { isOnline: boolean })) => selector({ isOnline: true }),
 }));
 
 jest.mock('@tanstack/react-virtual', () => ({
@@ -37,7 +36,7 @@ jest.mock('@/components/ui', () => {
   const actual = jest.requireActual('@/components/ui');
   return {
     ...actual,
-    Select: ({ value, onValueChange, children }: any) => (
+    Select: ({ value, onValueChange, children }: React.PropsWithChildren<{ value?: string; onValueChange?: (v: string) => void }>) => (
       <select
         aria-label="select"
         value={value}
@@ -48,8 +47,8 @@ jest.mock('@/components/ui', () => {
     ),
     SelectTrigger: () => null,
     SelectValue: () => null,
-    SelectContent: ({ children }: any) => <>{children}</>,
-    SelectItem: ({ value, children }: any) => <option value={value}>{children}</option>,
+    SelectContent: ({ children }: React.PropsWithChildren<Record<string, unknown>>) => <>{children}</>,
+    SelectItem: ({ value, children }: React.PropsWithChildren<{ value?: string }>) => <option value={value}>{children}</option>,
   };
 });
 

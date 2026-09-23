@@ -35,7 +35,7 @@ jest.mock('@/lib/api/hooks', () => ({
 
 // Mock next/link to render standard anchors
 jest.mock('next/link', () => {
-  return ({ children, href }: any) => {
+  return ({ children, href }: React.PropsWithChildren<{ href?: string }>) => {
     return <a href={href}>{children}</a>;
   };
 });
@@ -58,7 +58,7 @@ jest.mock('@/components/charts/RevenueChart', () => {
 // Mock recharts because ResponsiveContainer needs actual DOM measurements which JSDOM lacks
 jest.mock('recharts', () => {
   return {
-    ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
+    ResponsiveContainer: ({ children }: React.PropsWithChildren<Record<string, unknown>>) => <div data-testid="responsive-container">{children}</div>,
     AreaChart: ({ children, data }: any) => (
       <svg data-testid="area-chart" data-data={JSON.stringify(data)}>
         {children}

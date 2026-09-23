@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -28,7 +27,7 @@ function makeWrapper() {
     },
   });
   // Capture so tests can assert against the cache directly.
-  (makeWrapper as any).__cache = client;
+  (makeWrapper as Record<string, unknown>).__cache = client;
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return (
       <QueryClientProvider client={client}>{children}</QueryClientProvider>

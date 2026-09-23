@@ -32,7 +32,9 @@ export async function GET(req: NextRequest) {
 
   // Otherwise re-use an existing valid token so we don't invalidate in-flight
   // requests.
-  const existing = req.cookies.get(CSRF_COOKIE_NAME)?.value;
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  const existing = cookieStore.get(CSRF_COOKIE_NAME)?.value;
   const token =
     !forceRotate && existing && existing.length === 64 ? existing : generateCsrfToken();
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AxiosInstance } from 'axios';
 
 // Verifies the 401 token-refresh flow: while a refresh is in flight, other 401s
@@ -16,7 +15,7 @@ describe('axios token-refresh queue', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const axios = require('axios');
 
-    const makeResponse = (config: any, status: number, data: any) => ({
+    const makeResponse = (config: import("axios").InternalAxiosRequestConfig, status: number, data: unknown) => ({
       data,
       status,
       statusText: status === 200 ? 'OK' : 'Error',
@@ -29,7 +28,7 @@ describe('axios token-refresh queue', () => {
     // - /api/auth/refresh: succeeds after a short delay (keeps the refresh in
     //   flight long enough for the second request to be queued).
     // - any other URL: 401 on first hit, real 200 payload on the retry.
-    const adapter = (config: any) => {
+    const adapter = (config: import("axios").InternalAxiosRequestConfig) => {
       const url = config.url || '';
       if (url.includes('/api/auth/refresh')) {
         return new Promise((resolve) =>

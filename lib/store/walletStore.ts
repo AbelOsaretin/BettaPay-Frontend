@@ -144,6 +144,8 @@ export interface WalletState {
   signMessage: (message: string) => Promise<string>;
 }
 
+let refreshBalancesController: AbortController | null = null;
+
 export const useWalletStore = create<WalletState>((set, get) => ({
   address: null,
   stellarAccounts: [],
@@ -424,6 +426,12 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     const { address, network } = get();
     if (!address) return;
 
+    if (refreshBalancesController) {
+      refreshBalancesController.abort();
+    }
+    refreshBalancesController = new AbortController();
+    const signal = refreshBalancesController.signal;
+
     set({ loading: true, error: null, isReconnecting: false });
 
     const horizonUrl = NETWORK_URLS[network];
@@ -431,7 +439,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     try {
       const result = await retryWithBackoff(
         async () => {
-          const response = await fetch(`${horizonUrl}/accounts/${address}`);
+          const response = await fetch(`${horizonUrl}/accounts/${address}`, { signal });
 
           if (!response.ok) {
             if (response.status === 404) return 'NOT_FOUND' as const;
@@ -444,7 +452,10 @@ export const useWalletStore = create<WalletState>((set, get) => ({
           maxRetries: 3,
           baseDelay: 500,
           maxDelay: 3000,
-          isRetryable: () => true,
+          isRetryable: (e) => {
+            if (e instanceof Error && e.name === 'AbortError') return false;
+            return true;
+          },
           onRetry: () => {
             set({ isReconnecting: true });
           },
@@ -454,7 +465,9 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       set({ isReconnecting: false });
 
       if (result === 'NOT_FOUND') {
-        set({ balances: [], loading: false });
+        if (get().address === address && get().network === network) {
+          set({ balances: [], loading: false });
+        }
         return;
       }
 
@@ -472,8 +485,13 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         return { assetCode: b.asset_code!, balance: b.balance, assetIssuer: b.asset_issuer };
       });
 
-      set({ balances, loading: false, error: null });
+      if (get().address === address && get().network === network) {
+        set({ balances, loading: false, error: null });
+      }
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       console.error('Failed to refresh balances', error);
       captureException(error, { source: 'wallet' });
       set({

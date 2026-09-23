@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   AUTH_TOKEN_COOKIE,
   USER_ROLE_COOKIE,

@@ -15,7 +15,7 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const csrf = verifyCsrfRequest(req);
+  const csrf = await verifyCsrfRequest(req);
   if (!csrf.ok) {
     return NextResponse.json({ error: 'CSRF validation failed.' }, { status: CSRF_FAILURE_STATUS });
   }
@@ -44,7 +44,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const csrf = verifyCsrfRequest(req);
+  const csrf = await verifyCsrfRequest(req);
   if (!csrf.ok) {
     return NextResponse.json({ error: 'CSRF validation failed.' }, { status: CSRF_FAILURE_STATUS });
   }
