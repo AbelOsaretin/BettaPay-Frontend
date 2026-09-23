@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { type Language } from './codeSnippets';
+import { SafeHtmlRenderer } from '@/components/shared/SafeHtmlRenderer';
 
 interface SyntaxHighlighterProps {
   code: string;
@@ -97,9 +98,9 @@ export function SyntaxHighlighter({ code, language }: SyntaxHighlighterProps) {
 
   return (
     <div className="rounded-xl overflow-x-auto bg-white dark:bg-slate-950">
-      <div
+      <SafeHtmlRenderer
         className="text-sm font-mono leading-relaxed p-5"
-        dangerouslySetInnerHTML={{ __html: html || `<pre>${code}</pre>` }}
+        html={html || `<pre>${code}</pre>`}
         style={{
           colorScheme: 'light',
         }}

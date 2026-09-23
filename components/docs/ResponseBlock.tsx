@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { CopyButton } from './CopyButton';
+import { SafeHtmlRenderer } from '@/components/shared/SafeHtmlRenderer';
 
 interface ResponseBlockProps {
   /** HTTP status code shown as a colored badge. */
@@ -60,7 +61,7 @@ export function ResponseBlock({ status, html, code, label }: ResponseBlockProps)
         </div>
         <CopyButton value={code} label="Copy response body" />
       </div>
-      <div className="docs-code" dangerouslySetInnerHTML={{ __html: html }} />
+      <SafeHtmlRenderer className="docs-code" html={html} />
     </div>
   );
 }

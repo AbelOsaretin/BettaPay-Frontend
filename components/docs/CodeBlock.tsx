@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { CopyButton } from './CopyButton';
+import { SafeHtmlRenderer } from '@/components/shared/SafeHtmlRenderer';
 
 interface CodeBlockProps {
   /** Raw source used for copy-to-clipboard. */
@@ -34,7 +35,7 @@ export function CodeBlock({ code, html, language, filename, className }: CodeBlo
           <CopyButton value={code} className="bg-card/80 backdrop-blur-sm" />
         </div>
       )}
-      <div className="docs-code" dangerouslySetInnerHTML={{ __html: html }} />
+      <SafeHtmlRenderer className="docs-code" html={html} />
     </div>
   );
 }
