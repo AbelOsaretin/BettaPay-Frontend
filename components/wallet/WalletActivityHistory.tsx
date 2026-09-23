@@ -132,6 +132,8 @@ export function WalletActivityHistory({ address: explicitAddress }: { address?: 
                 {virtualizer.getVirtualItems().map((virtualRow) => (
                   <div
                     key={transactions[virtualRow.index]?.id ?? virtualRow.key}
+                    ref={virtualizer.measureElement}
+                    data-index={virtualRow.index}
                     style={{
                       position: 'absolute',
                       top: 0,
