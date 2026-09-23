@@ -492,3 +492,45 @@ setWalletContextProvider(() => {
   const { isConnected, connector, network } = useWalletStore.getState();
   return { connected: isConnected, connector, network };
 });
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== WALLET_SESSION_KEY) return;
+
+    if (!event.newValue) {
+      clearWalletConnectionState();
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(event.newValue) as Partial<PersistedWalletSession>;
+      if (parsed.version !== 1 || !parsed.connector || !parsed.address) {
+        clearWalletConnectionState();
+        return;
+      }
+      if (parsed.connector !== 'freighter' && parsed.connector !== 'walletconnect') return;
+
+      const newAddress = parsed.address;
+      const newNetwork = parsed.network === 'public' ? 'public' : 'testnet';
+      const newStellarAccounts = parsed.stellarAccounts?.length ? parsed.stellarAccounts : [newAddress];
+
+      const state = useWalletStore.getState();
+      const needsRefresh = state.address !== newAddress || state.network !== newNetwork;
+
+      useWalletStore.setState({
+        address: newAddress,
+        stellarAccounts: newStellarAccounts,
+        isConnected: true,
+        connector: parsed.connector,
+        network: newNetwork,
+        walletConnectSession: parsed.walletConnectSession || null,
+      });
+
+      if (needsRefresh) {
+        useWalletStore.getState().refreshBalances();
+      }
+    } catch {
+      clearWalletConnectionState();
+    }
+  });
+}
