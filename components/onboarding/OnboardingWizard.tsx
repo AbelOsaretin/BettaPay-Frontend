@@ -87,15 +87,21 @@ export const OnboardingWizard = () => {
   const dismiss = useCallback(() => {
     setOnboardingCompleted(true);
     markComplete();
+    localStorage.removeItem('bettapay_wizard_step');
   }, [markComplete]);
+
+  const setAndSaveStep = useCallback((step: number) => {
+    setCurrentStep(step);
+    localStorage.setItem('bettapay_wizard_step', step.toString());
+  }, []);
 
   const handleNext = useCallback(() => {
     if (currentStep < STEPS.length - 1) {
-      setCurrentStep((s) => s + 1);
+      setAndSaveStep(currentStep + 1);
     } else {
       dismiss();
     }
-  }, [currentStep, dismiss]);
+  }, [currentStep, dismiss, setAndSaveStep]);
 
   const handleStepCta = useCallback(
     (step: Step) => {
@@ -104,17 +110,28 @@ export const OnboardingWizard = () => {
       }
       step.cta.onClick?.();
       if (currentStep < STEPS.length - 1) {
-        setCurrentStep((s) => s + 1);
+        setAndSaveStep(currentStep + 1);
       } else {
         dismiss();
       }
     },
-    [currentStep, dismiss, setWalletModalOpen],
+    [currentStep, dismiss, setWalletModalOpen, setAndSaveStep],
   );
+
+  useEffect(() => {
+    const saved = localStorage.getItem('bettapay_wizard_step');
+    if (saved) {
+      const step = parseInt(saved, 10);
+      if (!isNaN(step) && step >= 0 && step < STEPS.length) {
+        setCurrentStep(step);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!visible) {
       setCurrentStep(0);
+      localStorage.removeItem('bettapay_wizard_step');
     }
   }, [visible]);
 
@@ -200,7 +217,7 @@ export const OnboardingWizard = () => {
             <button
               key={i}
               type="button"
-              onClick={() => setCurrentStep(i)}
+              onClick={() => setAndSaveStep(i)}
               className={cn(
                 "h-2 rounded-full transition-all duration-300",
                 i === currentStep
