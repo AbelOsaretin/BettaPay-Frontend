@@ -46,3 +46,36 @@ export type BankDetails = z.infer<typeof bankDetailsSchema>;
 export const businessTypeSchema = z.enum(["individual", "business"], {
   errorMap: () => ({ message: "Business type must be either 'individual' or 'business'" })
 });
+
+export const webhookUrlSchema = z
+  .string()
+  .trim()
+  .url({ message: "Enter a valid URL, including https://" })
+  .refine(
+    (val) => {
+      if (!val) return true;
+      try {
+        const parsed = new URL(val);
+        if (parsed.protocol !== "https:") return false;
+        
+        const hostname = parsed.hostname;
+        if (
+          hostname === "localhost" ||
+          hostname === "127.0.0.1" ||
+          hostname === "[::1]" ||
+          hostname === "169.254.169.254" ||
+          hostname.startsWith("192.168.") ||
+          hostname.startsWith("10.") ||
+          /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname)
+        ) {
+          return false;
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    {
+      message: "URL must be HTTPS and cannot be a private IP or localhost.",
+    }
+  );
