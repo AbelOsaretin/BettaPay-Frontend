@@ -30,7 +30,7 @@ jest.mock('@/lib/i18n/useAppTranslation', () => ({
 
 // Mock next/link
 jest.mock('next/link', () => {
-  return ({ children, href }: any) => {
+  return ({ children, href }: React.PropsWithChildren<{ href?: string }>) => {
     return <a href={href}>{children}</a>;
   };
 });

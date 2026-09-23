@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import type { AxiosInstance } from 'axios';
 
 // Verifies that the API base URL is resolved per request rather than captured
@@ -22,7 +22,7 @@ describe('api base URL resolution', () => {
     // recording adapter BEFORE the SUT is required, so the instance it creates
     // inherits the adapter from the axios defaults it was merged from.
     const axios = require('axios');
-    axios.defaults.adapter = (config: any) => {
+    axios.defaults.adapter = (config: import("axios").InternalAxiosRequestConfig) => {
       seenBaseUrls.push(config.baseURL);
       seenTimeouts.push(config.timeout);
       return Promise.resolve({
@@ -44,7 +44,7 @@ describe('api base URL resolution', () => {
 
   afterEach(() => {
     resetApiBaseUrl();
-    delete (window as any).__BETTAPAY_API_URL__;
+    delete (window as Window & typeof globalThis & { __BETTAPAY_API_URL__?: string }).__BETTAPAY_API_URL__;
   });
 
   it('applies a new base URL to subsequent requests', async () => {
@@ -77,7 +77,7 @@ describe('api base URL resolution', () => {
   });
 
   it('reads a runtime global when no override is set', async () => {
-    (window as any).__BETTAPAY_API_URL__ = 'https://runtime.bettapay.io';
+    (window as Window & typeof globalThis & { __BETTAPAY_API_URL__?: string }).__BETTAPAY_API_URL__ = 'https://runtime.bettapay.io';
     await apiClient.get('/api/payments');
 
     expect(seenBaseUrls[0]).toBe('https://runtime.bettapay.io');

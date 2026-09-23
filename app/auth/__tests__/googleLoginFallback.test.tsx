@@ -12,7 +12,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 jest.mock('next/link', () => {
-  return ({ children, href }: any) => <a href={href}>{children}</a>;
+  return ({ children, href }: React.PropsWithChildren<{ href?: string }>) => <a href={href}>{children}</a>;
 });
 
 // Stub i18n so we don't have to spin up react-i18next's provider tree
@@ -51,7 +51,7 @@ jest.mock('next/dynamic', () => () => () => null);
 // NB: tests that want to query icons should use getAllByTestId, since
 // every mocked icon shares the same `data-testid`.
 jest.mock('lucide-react', () => {
-  const stub = ({ children, ...props }: any) => (
+  const stub = ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
     <svg data-testid="mock-icon" {...props}>
       {children}
     </svg>
@@ -75,7 +75,7 @@ jest.mock('@/components/auth/MagicLinkForm', () => ({
 
 jest.mock('@react-oauth/google', () => ({
   GoogleLogin: () => <button data-testid="mock-google-login">Continue with Google</button>,
-  GoogleOAuthProvider: ({ children }: any) => <>{children}</>,
+  GoogleOAuthProvider: ({ children }: React.PropsWithChildren<Record<string, unknown>>) => <>{children}</>,
 }));
 
 jest.mock('sonner', () => ({

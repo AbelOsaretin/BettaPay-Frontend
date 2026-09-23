@@ -21,7 +21,7 @@ jest.mock('next/navigation', () => ({
 
 // Mock next/link
 jest.mock('next/link', () => {
-  return ({ children, href }: any) => <a href={href}>{children}</a>;
+  return ({ children, href }: React.PropsWithChildren<{ href?: string }>) => <a href={href}>{children}</a>;
 });
 
 // Mock dynamic import of WalletModal to a synchronous component
@@ -76,7 +76,7 @@ jest.mock('@react-oauth/google', () => ({
       Continue with Google
     </button>
   ),
-  GoogleOAuthProvider: ({ children }: any) => <>{children}</>,
+  GoogleOAuthProvider: ({ children }: React.PropsWithChildren<Record<string, unknown>>) => <>{children}</>,
 }));
 
 // Mock Freighter signChallenge
