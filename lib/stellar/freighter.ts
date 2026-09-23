@@ -153,16 +153,19 @@ export const restoreFreighterSession = async (): Promise<string | null> => {
 
 export const signWithFreighter = async (xdr: string): Promise<string | null> => {
   try {
-    const signedTxResp = await signTransaction(xdr, {
-      networkPassphrase: getPassphrase(),
-    });
+    const signedTxResp = await Promise.race([
+      signTransaction(xdr, { networkPassphrase: getPassphrase() }),
+      new Promise<{ error?: string; signedTxXdr?: string }>((_, reject) =>
+        setTimeout(() => reject(new Error('Signing timeout')), 60000)
+      )
+    ]);
 
     if (signedTxResp.error) {
       console.error('Freighter sign error', signedTxResp.error);
       return null;
     }
 
-    return signedTxResp.signedTxXdr;
+    return signedTxResp.signedTxXdr || null;
   } catch (error) {
     console.error('Failed to sign transaction with Freighter', error);
     throw classifyFreighterError(error);
