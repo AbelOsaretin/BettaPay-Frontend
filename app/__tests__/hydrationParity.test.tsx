@@ -24,7 +24,7 @@ import { render, screen } from '@testing-library/react';
 
 // next/link — both environments need a plain anchor
 jest.mock('next/link', () => {
-  return ({ children, href }: any) => <a href={href}>{children}</a>;
+  return ({ children, href }: React.PropsWithChildren<{ href?: string }>) => <a href={href}>{children}</a>;
 });
 
 // next/image — lightweight stub (no real image loading in tests)

@@ -22,6 +22,7 @@ const AccountItem = memo(function AccountItem({ acc, index, isSelected, onSelect
   return (
     <button
       type="button"
+      role="option"
       onClick={() => onSelect(acc)}
       className={`w-full flex items-center justify-between p-3 rounded-lg border text-left text-xs font-mono transition-colors ${
         isSelected
@@ -29,7 +30,7 @@ const AccountItem = memo(function AccountItem({ acc, index, isSelected, onSelect
           : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
       }`}
       aria-label={`Select account ${acc}`}
-      aria-pressed={isSelected}
+      aria-selected={isSelected}
     >
       <div className="flex items-center gap-2 overflow-hidden">
         <span className="text-[10px] text-muted-foreground font-sans px-1.5 py-0.5 rounded bg-muted">
@@ -74,7 +75,7 @@ export function AccountPicker({ onAccountSelected, className = '' }: AccountPick
         This session presented multiple Stellar accounts. Choose which account to inspect and transact with.
       </p>
 
-      <div className="space-y-2">
+      <div className="space-y-2" role="listbox" aria-label="Available accounts">
         {stellarAccounts.map((acc, index) => (
           <AccountItem
             key={acc}

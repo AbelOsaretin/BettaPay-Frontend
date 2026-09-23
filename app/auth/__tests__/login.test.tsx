@@ -22,7 +22,7 @@ jest.mock('next/navigation', () => ({
 
 // Mock next/link
 jest.mock('next/link', () => {
-  return ({ children, href }: any) => <a href={href}>{children}</a>;
+  return ({ children, href }: React.PropsWithChildren<{ href?: string }>) => <a href={href}>{children}</a>;
 });
 
 // Mock dynamic import of WalletModal
@@ -41,9 +41,9 @@ jest.mock('sonner', () => ({
 // Mock framer-motion
 jest.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: React.PropsWithChildren<Record<string, unknown>>) => <>{children}</>,
 }));
 
 // The login page also consults NEXT_PUBLIC_GOOGLE_CLIENT_ID to decide
@@ -56,7 +56,7 @@ process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = 'mock-client-id-for-tests';
 // Mock Google Login (requires GoogleOAuthProvider wrapper in real app)
 jest.mock('@react-oauth/google', () => ({
   GoogleLogin: () => <button data-testid="mock-google-login">Continue with Google</button>,
-  GoogleOAuthProvider: ({ children }: any) => <>{children}</>,
+  GoogleOAuthProvider: ({ children }: React.PropsWithChildren<Record<string, unknown>>) => <>{children}</>,
 }));
 
 // Mock Freighter signChallenge
@@ -126,7 +126,7 @@ jest.mock('@/components/ui/select', () => {
     ),
     SelectTrigger: (_props: any) => null,
     SelectValue: ({ placeholder }: any) => <option value="">{placeholder}</option>,
-    SelectContent: ({ children }: any) => <>{children}</>,
+    SelectContent: ({ children }: React.PropsWithChildren<Record<string, unknown>>) => <>{children}</>,
     SelectItem: ({ children, value }: any) => <option value={value}>{children}</option>,
   };
 });

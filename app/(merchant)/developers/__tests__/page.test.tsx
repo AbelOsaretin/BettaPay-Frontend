@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import DevelopersPage from "../page";
@@ -16,7 +15,7 @@ jest.mock("@/lib/hooks/useNotify", () => ({
 }));
 
 jest.mock("@/lib/store/offlineStore", () => ({
-  useOfflineStore: (selector: any) => selector({ isOnline: true }),
+  useOfflineStore: (selector: (state: { isOnline: boolean })) => selector({ isOnline: true }),
 }));
 
 jest.mock("@/lib/api/axios", () => ({
@@ -40,7 +39,7 @@ jest.mock("@/components/developers/KeyUsagePanel", () => ({
 // Mock Select component
 jest.mock("@/components/ui/select", () => {
   return {
-    Select: ({ value, onValueChange, children }: any) => (
+    Select: ({ value, onValueChange, children }: React.PropsWithChildren<{ value?: string; onValueChange?: (v: string) => void }>) => (
       <select
         aria-label="select-env"
         value={value}
@@ -51,8 +50,8 @@ jest.mock("@/components/ui/select", () => {
     ),
     SelectTrigger: () => null,
     SelectValue: () => null,
-    SelectContent: ({ children }: any) => <>{children}</>,
-    SelectItem: ({ value, children }: any) => (
+    SelectContent: ({ children }: React.PropsWithChildren<Record<string, unknown>>) => <>{children}</>,
+    SelectItem: ({ value, children }: React.PropsWithChildren<{ value?: string }>) => (
       <option value={value}>{children}</option>
     ),
   };

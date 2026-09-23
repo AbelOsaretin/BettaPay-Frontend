@@ -92,7 +92,6 @@ export const CSRF_FAILURE_STATUS = 403;
 
 type CsrfRequestLike = {
   headers: { get(name: string): string | null };
-  cookies: { get(name: string): { value: string } | undefined };
 };
 
 export interface CsrfVerifyResult {
@@ -115,16 +114,20 @@ export interface CsrfVerifyResult {
  *
  * Pre-login requests (no `auth_token`) only need the double-submit check.
  */
-export function verifyCsrfRequest(req: CsrfRequestLike): CsrfVerifyResult {
+export async function verifyCsrfRequest(req: CsrfRequestLike): Promise<CsrfVerifyResult> {
   const header = req.headers.get(CSRF_HEADER_NAME) ?? req.headers.get(CSRF_HEADER_NAME.toLowerCase());
-  const cookieToken = req.cookies.get(CSRF_COOKIE_NAME)?.value;
+  
+  const { cookies } = await import('next/headers');
+  const cookieStore = await cookies();
+  
+  const cookieToken = cookieStore.get(CSRF_COOKIE_NAME)?.value;
 
   if (!header) return { ok: false, reason: 'missing-header' };
   if (!cookieToken) return { ok: false, reason: 'missing-cookie' };
   if (!timingSafeStringEqual(header, cookieToken)) return { ok: false, reason: 'mismatch' };
 
-  const authToken = req.cookies.get('auth_token')?.value;
-  const actualBinding = req.cookies.get(CSRF_SID_COOKIE_NAME)?.value;
+  const authToken = cookieStore.get('auth_token')?.value;
+  const actualBinding = cookieStore.get(CSRF_SID_COOKIE_NAME)?.value;
   // Enforce the binding whenever a `csrf_sid` exists. A session predating the
   // binding (or one whose sid was cleared) has none yet — fall back to the
   // double-submit check alone rather than lock the user out; login/refresh

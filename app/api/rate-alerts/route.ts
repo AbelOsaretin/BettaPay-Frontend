@@ -32,7 +32,7 @@ const createSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const csrf = verifyCsrfRequest(req);
+  const csrf = await verifyCsrfRequest(req);
   if (!csrf.ok) {
     return NextResponse.json({ error: 'CSRF validation failed.' }, { status: CSRF_FAILURE_STATUS });
   }

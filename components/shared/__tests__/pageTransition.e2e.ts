@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-declare let describe: any;
-declare let it: any;
-declare let expect: any;
-declare let browser: any;
 
 describe('Stellar Wave Merchant Page Scroll Preservation E2E Suite', () => {
   const isE2E = typeof browser !== 'undefined';

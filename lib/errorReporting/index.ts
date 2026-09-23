@@ -39,6 +39,7 @@ function isReportingEnabled(): boolean {
     if (localStorage.getItem('bp_telemetry_consent') === 'false') return false;
   } catch {
     // localStorage may be unavailable (private browsing, quota).
+    return false;
   }
 
   const globals = window as unknown as Record<string, unknown>;

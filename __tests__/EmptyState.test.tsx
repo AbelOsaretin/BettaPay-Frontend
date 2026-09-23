@@ -30,14 +30,14 @@ MockIcon.displayName = 'MockIcon';
 
 describe('EmptyState', () => {
   it('renders the title', () => {
-    render(<EmptyState icon={MockIcon as any} title="No data found" />);
+    render(<EmptyState icon={MockIcon} title="No data found" />);
     expect(screen.getByText('No data found')).toBeInTheDocument();
   });
 
   it('renders the description when provided', () => {
     render(
       <EmptyState
-        icon={MockIcon as any}
+        icon={MockIcon}
         title="No data"
         description="There is nothing to show here."
       />,
@@ -46,12 +46,12 @@ describe('EmptyState', () => {
   });
 
   it('does not render description when not provided', () => {
-    render(<EmptyState icon={MockIcon as any} title="No data" />);
+    render(<EmptyState icon={MockIcon} title="No data" />);
     expect(screen.queryByText('There is nothing to show here.')).not.toBeInTheDocument();
   });
 
   it('renders the icon', () => {
-    render(<EmptyState icon={MockIcon as any} title="Empty" />);
+    render(<EmptyState icon={MockIcon} title="Empty" />);
     expect(screen.getByTestId('mock-icon')).toBeInTheDocument();
   });
 
@@ -59,7 +59,7 @@ describe('EmptyState', () => {
     const onClick = jest.fn();
     render(
       <EmptyState
-        icon={MockIcon as any}
+        icon={MockIcon}
         title="Empty"
         action={{ label: 'Create Something', onClick }}
       />,
@@ -71,7 +71,7 @@ describe('EmptyState', () => {
   });
 
   it('does not render CTA button when action is not provided', () => {
-    render(<EmptyState icon={MockIcon as any} title="Empty" />);
+    render(<EmptyState icon={MockIcon} title="Empty" />);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
@@ -79,7 +79,7 @@ describe('EmptyState', () => {
     const onSecondary = jest.fn();
     render(
       <EmptyState
-        icon={MockIcon as any}
+        icon={MockIcon}
         title="Empty"
         action={{ label: 'Primary', onClick: jest.fn() }}
         secondaryAction={{ label: 'Secondary', onClick: onSecondary }}
@@ -92,13 +92,13 @@ describe('EmptyState', () => {
   });
 
   it('has role="status" for accessibility', () => {
-    render(<EmptyState icon={MockIcon as any} title="Empty" />);
+    render(<EmptyState icon={MockIcon} title="Empty" />);
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
   it('applies compact styles when compact is true', () => {
     const { container } = render(
-      <EmptyState icon={MockIcon as any} title="Compact" compact />,
+      <EmptyState icon={MockIcon} title="Compact" compact />,
     );
     const statusDiv = container.querySelector('[role="status"]');
     expect(statusDiv?.className).toContain('py-6');
@@ -106,7 +106,7 @@ describe('EmptyState', () => {
 
   it('applies custom className', () => {
     const { container } = render(
-      <EmptyState icon={MockIcon as any} title="Custom" className="custom-class" />,
+      <EmptyState icon={MockIcon} title="Custom" className="custom-class" />,
     );
     const statusDiv = container.querySelector('[role="status"]');
     expect(statusDiv?.className).toContain('custom-class');

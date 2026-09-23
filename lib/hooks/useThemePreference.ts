@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { useAuthStore } from "@/lib/store/authStore";
 
@@ -27,16 +27,21 @@ export function useThemePreference(): void {
   const userId = useAuthStore((s) => s.user?.id ?? null);
   const prevUserIdRef = useRef<string | null>(userId);
 
-  // ── 1. Restore preference on mount ───────────────────────────────────────
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  // ── 1. Restore preference on mount (Hydration Safe) ─────────────────────
+  const getSnapshot = () => {
     const key = getThemeStorageKey(userId);
-    const stored = localStorage.getItem(key);
-    if (stored && VALID_THEMES.has(stored)) {
-      setTheme(stored);
+    return window.localStorage.getItem(key);
+  };
+  const getServerSnapshot = () => null;
+  const subscribe = () => () => {}; // We handle changes via other effects
+
+  const storedTheme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  useEffect(() => {
+    if (storedTheme && VALID_THEMES.has(storedTheme)) {
+      setTheme(storedTheme);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // intentionally runs once on mount
+  }, [storedTheme, setTheme]);
 
   // ── 2. Handle user identity transitions (login / logout) ─────────────────
   useEffect(() => {

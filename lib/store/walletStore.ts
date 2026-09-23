@@ -115,6 +115,7 @@ export interface WalletState {
   isReconnecting: boolean;
   error: string | null;
   connectError: ConnectError | null;
+  isSigning: boolean;
 
   // ── WalletConnect ──────────────────────────────────────────────────────────
   /** Resolves when a WalletConnect session is established. Set by the store so
@@ -144,6 +145,8 @@ export interface WalletState {
   signMessage: (message: string) => Promise<string>;
 }
 
+let refreshBalancesController: AbortController | null = null;
+
 export const useWalletStore = create<WalletState>((set, get) => ({
   address: null,
   stellarAccounts: [],
@@ -155,6 +158,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   isReconnecting: false,
   error: null,
   connectError: null,
+  isSigning: false,
   walletModalOpen: false,
   walletConnectPending: false,
   walletConnectSession: null,
@@ -385,21 +389,28 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   },
 
   signTransaction: async (xdr: string): Promise<string> => {
-    const { connector } = get();
+    const { connector, isSigning } = get();
+    if (isSigning) throw new Error('Transaction signing is already in progress');
+    
+    set({ isSigning: true });
+    
+    try {
+      if (connector === 'freighter') {
+        const { signWithFreighter } = await import('@/lib/stellar/freighter');
+        const signed = await signWithFreighter(xdr);
+        if (!signed) throw new Error('Freighter rejected the transaction');
+        return signed;
+      }
 
-    if (connector === 'freighter') {
-      const { signWithFreighter } = await import('@/lib/stellar/freighter');
-      const signed = await signWithFreighter(xdr);
-      if (!signed) throw new Error('Freighter rejected the transaction');
-      return signed;
+      if (connector === 'walletconnect') {
+        const client = getWalletConnectClient();
+        return await client.signTransaction(xdr);
+      }
+
+      throw new Error('No wallet connected');
+    } finally {
+      set({ isSigning: false });
     }
-
-    if (connector === 'walletconnect') {
-      const client = getWalletConnectClient();
-      return client.signTransaction(xdr);
-    }
-
-    throw new Error('No wallet connected');
   },
 
   signMessage: async (message: string): Promise<string> => {
@@ -424,6 +435,12 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     const { address, network } = get();
     if (!address) return;
 
+    if (refreshBalancesController) {
+      refreshBalancesController.abort();
+    }
+    refreshBalancesController = new AbortController();
+    const signal = refreshBalancesController.signal;
+
     set({ loading: true, error: null, isReconnecting: false });
 
     const horizonUrl = NETWORK_URLS[network];
@@ -431,7 +448,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     try {
       const result = await retryWithBackoff(
         async () => {
-          const response = await fetch(`${horizonUrl}/accounts/${address}`);
+          const response = await fetch(`${horizonUrl}/accounts/${address}`, { signal });
 
           if (!response.ok) {
             if (response.status === 404) return 'NOT_FOUND' as const;
@@ -444,7 +461,10 @@ export const useWalletStore = create<WalletState>((set, get) => ({
           maxRetries: 3,
           baseDelay: 500,
           maxDelay: 3000,
-          isRetryable: () => true,
+          isRetryable: (e) => {
+            if (e instanceof Error && e.name === 'AbortError') return false;
+            return true;
+          },
           onRetry: () => {
             set({ isReconnecting: true });
           },
@@ -454,7 +474,9 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       set({ isReconnecting: false });
 
       if (result === 'NOT_FOUND') {
-        set({ balances: [], loading: false });
+        if (get().address === address && get().network === network) {
+          set({ balances: [], loading: false });
+        }
         return;
       }
 
@@ -472,8 +494,13 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         return { assetCode: b.asset_code!, balance: b.balance, assetIssuer: b.asset_issuer };
       });
 
-      set({ balances, loading: false, error: null });
+      if (get().address === address && get().network === network) {
+        set({ balances, loading: false, error: null });
+      }
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       console.error('Failed to refresh balances', error);
       captureException(error, { source: 'wallet' });
       set({
@@ -492,3 +519,45 @@ setWalletContextProvider(() => {
   const { isConnected, connector, network } = useWalletStore.getState();
   return { connected: isConnected, connector, network };
 });
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== WALLET_SESSION_KEY) return;
+
+    if (!event.newValue) {
+      clearWalletConnectionState();
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(event.newValue) as Partial<PersistedWalletSession>;
+      if (parsed.version !== 1 || !parsed.connector || !parsed.address) {
+        clearWalletConnectionState();
+        return;
+      }
+      if (parsed.connector !== 'freighter' && parsed.connector !== 'walletconnect') return;
+
+      const newAddress = parsed.address;
+      const newNetwork = parsed.network === 'public' ? 'public' : 'testnet';
+      const newStellarAccounts = parsed.stellarAccounts?.length ? parsed.stellarAccounts : [newAddress];
+
+      const state = useWalletStore.getState();
+      const needsRefresh = state.address !== newAddress || state.network !== newNetwork;
+
+      useWalletStore.setState({
+        address: newAddress,
+        stellarAccounts: newStellarAccounts,
+        isConnected: true,
+        connector: parsed.connector,
+        network: newNetwork,
+        walletConnectSession: parsed.walletConnectSession || null,
+      });
+
+      if (needsRefresh) {
+        useWalletStore.getState().refreshBalances();
+      }
+    } catch {
+      clearWalletConnectionState();
+    }
+  });
+}
