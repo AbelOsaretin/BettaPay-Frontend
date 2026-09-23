@@ -16,7 +16,7 @@ import { StepSettlement } from "@/components/onboarding/StepSettlement";
 import { StepWebhook } from "@/components/onboarding/StepWebhook";
 import { StepKyc } from "@/components/onboarding/StepKyc";
 import { StepReview } from "@/components/onboarding/StepReview";
-import { accountNumberSchema, bankCodeSchema } from "@/lib/utils/onboardingSchemas";
+import { accountNumberSchema, bankCodeSchema, businessTypeSchema } from "@/lib/utils/onboardingSchemas";
 import { setOnboardingCompleted } from "@/lib/auth/session";
 
 export type OnboardingData = {
@@ -236,6 +236,10 @@ export default function OnboardingPage() {
     if (targetStep === 0) {
       if (data.businessName.trim().length < 2) nextErrors.businessName = "Enter a business name with at least 2 characters.";
       if (!data.country) nextErrors.country = "Select your country.";
+      const res = businessTypeSchema.safeParse(data.businessType);
+      if (!res.success) {
+        nextErrors.businessType = res.error.issues[0]?.message || "Invalid business type.";
+      }
     }
     if (targetStep === 1 && !data.settlementCurrency) nextErrors.settlementCurrency = "Choose a settlement currency.";
     if (targetStep === 2) {

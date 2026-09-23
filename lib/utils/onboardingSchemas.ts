@@ -42,3 +42,7 @@ export const bankDetailsSchema = z.object({
 });
 
 export type BankDetails = z.infer<typeof bankDetailsSchema>;
+
+export const businessTypeSchema = z.enum(["individual", "business"], {
+  errorMap: () => ({ message: "Business type must be either 'individual' or 'business'" })
+});
