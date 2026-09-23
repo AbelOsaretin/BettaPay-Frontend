@@ -115,6 +115,7 @@ export interface WalletState {
   isReconnecting: boolean;
   error: string | null;
   connectError: ConnectError | null;
+  isSigning: boolean;
 
   // ── WalletConnect ──────────────────────────────────────────────────────────
   /** Resolves when a WalletConnect session is established. Set by the store so
@@ -155,6 +156,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   isReconnecting: false,
   error: null,
   connectError: null,
+  isSigning: false,
   walletModalOpen: false,
   walletConnectPending: false,
   walletConnectSession: null,
@@ -385,21 +387,28 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   },
 
   signTransaction: async (xdr: string): Promise<string> => {
-    const { connector } = get();
+    const { connector, isSigning } = get();
+    if (isSigning) throw new Error('Transaction signing is already in progress');
+    
+    set({ isSigning: true });
+    
+    try {
+      if (connector === 'freighter') {
+        const { signWithFreighter } = await import('@/lib/stellar/freighter');
+        const signed = await signWithFreighter(xdr);
+        if (!signed) throw new Error('Freighter rejected the transaction');
+        return signed;
+      }
 
-    if (connector === 'freighter') {
-      const { signWithFreighter } = await import('@/lib/stellar/freighter');
-      const signed = await signWithFreighter(xdr);
-      if (!signed) throw new Error('Freighter rejected the transaction');
-      return signed;
+      if (connector === 'walletconnect') {
+        const client = getWalletConnectClient();
+        return await client.signTransaction(xdr);
+      }
+
+      throw new Error('No wallet connected');
+    } finally {
+      set({ isSigning: false });
     }
-
-    if (connector === 'walletconnect') {
-      const client = getWalletConnectClient();
-      return client.signTransaction(xdr);
-    }
-
-    throw new Error('No wallet connected');
   },
 
   signMessage: async (message: string): Promise<string> => {
