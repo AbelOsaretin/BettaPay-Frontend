@@ -100,4 +100,55 @@ describe('useAuthStore', () => {
       isLoggedIn: true,
     });
   });
+
+  describe('cross-tab logout via BroadcastChannel', () => {
+    let mockPostMessage: jest.Mock;
+    let mockOnmessage: ((event: MessageEvent) => void) | null = null;
+    const originalBroadcastChannel = global.BroadcastChannel;
+
+    beforeEach(() => {
+      mockPostMessage = jest.fn();
+      mockOnmessage = null;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (global as any).BroadcastChannel = class BroadcastChannel {
+        name: string;
+        onmessage: ((event: MessageEvent) => void) | null = null;
+        constructor(name: string) {
+          this.name = name;
+          mockOnmessage = null;
+        }
+        postMessage = mockPostMessage;
+        close = jest.fn();
+        addEventListener = jest.fn();
+        removeEventListener = jest.fn();
+      };
+    });
+
+    afterEach(() => {
+      global.BroadcastChannel = originalBroadcastChannel;
+    });
+
+    it('clears auth state when receiving a logout message from another tab', () => {
+      useAuthStore.getState().login('session-token', testUser);
+      expect(useAuthStore.getState().isAuthenticated).toBe(true);
+
+      // The module sets channel.onmessage at load time; simulate the external event
+      const channel = new BroadcastChannel('bettapay_auth_sync');
+      const handler = (channel as unknown as { onmessage: (e: MessageEvent) => void }).onmessage;
+      handler?.({ data: 'logout' } as MessageEvent);
+
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+      expect(useAuthStore.getState().user).toBeNull();
+      expect(useAuthStore.getState().token).toBeNull();
+    });
+
+    it('broadcasts logout message when logout is called', async () => {
+      global.fetch = jest.fn().mockResolvedValue({ ok: true });
+      useAuthStore.getState().login('session-token', testUser);
+      await useAuthStore.getState().logout();
+
+      expect(mockPostMessage).toHaveBeenCalledWith('logout');
+    });
+  });
 });
