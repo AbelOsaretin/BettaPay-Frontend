@@ -85,7 +85,6 @@ export const useAuthStore = create<AuthState>()(
             channel.close();
           } catch {}
         }
-        }
         set({
           user: null,
           token: null,
